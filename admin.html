@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - المراقب</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: #f5f5f5; color: #212121; }
+        .login-container { max-width: 400px; margin: 100px auto; padding: 20px; }
+        .login-box { background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .login-box h2 { text-align: center; color: #d32f2f; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; color: #757575; margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 15px; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; background: linear-gradient(135deg, #d32f2f, #b71c1c); color: white; font-size: 16px; font-weight: 700; cursor: pointer; }
+
+        .dashboard { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .dashboard-header { background: linear-gradient(135deg, #d32f2f, #b71c1c); color: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        .stat-card h3 { font-size: 14px; color: #757575; margin-bottom: 8px; }
+        .stat-card .value { font-size: 28px; font-weight: 700; color: #212121; }
+        .stat-card .value.red { color: #d32f2f; }
+        .stat-card .value.green { color: #388e3c; }
+        .stat-card .value.blue { color: #1976d2; }
+
+        .section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        .section h3 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .section h3 i { color: #d32f2f; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #f5f5f5; }
+        th { color: #757575; font-weight: 600; font-size: 12px; }
+        .badge { padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+        .badge-active { background: #ffebee; color: #d32f2f; }
+        .badge-verified { background: #e8f5e9; color: #388e3c; }
+        .badge-false { background: #eeeeee; color: #757575; }
+        .badge-resolved { background: #e3f2fd; color: #1976d2; }
+
+        .actions { display: flex; gap: 8px; }
+        .actions button { padding: 6px 12px; border: none; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 600; }
+        .btn-false { background: #ffebee; color: #d32f2f; }
+        .btn-delete { background: #d32f2f; color: white; }
+        .btn-block { background: #ff9800; color: white; }
+        .btn-unblock { background: #e8f5e9; color: #388e3c; }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; border-radius: 10px; border: none; background: white; cursor: pointer; font-weight: 600; }
+        .tab.active { background: #d32f2f; color: white; }
+
+        .hidden { display: none; }
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #212121; color: white; padding: 14px 24px; border-radius: 12px; z-index: 3000; }
+    </style>
+</head>
+<body>
+
+<div class="login-container" id="loginContainer">
+    <div class="login-box">
+        <h2><i class="fas fa-eye"></i> لوحة التحكم - المراقب</h2>
+        <div class="form-group"><label>اسم المستخدم</label><input type="text" id="adminUser" placeholder="admin"></div>
+        <div class="form-group"><label>كلمة السر</label><input type="password" id="adminPass" placeholder="admin123"></div>
+        <button class="btn" onclick="adminLogin()">دخول</button>
+    </div>
+</div>
+
+<div class="dashboard" id="dashboard">
+    <div class="dashboard-header">
+        <h2><i class="fas fa-eye"></i> المراقب - لوحة التحكم</h2>
+        <p>مراقبة البلاغات وإدارة المستخدمين</p>
+    </div>
+
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('alerts')">البلاغات</button>
+        <button class="tab" onclick="showTab('users')">المستخدمين</button>
+    </div>
+
+    <div class="section" id="alertsTab">
+        <h3><i class="fas fa-bell"></i> قائمة البلاغات</h3>
+        <div style="overflow-x: auto;">
+            <table id="alertsTable"><thead><tr><th>السائق</th><th>المدينة</th><th>الحالة</th><th>تأكيدات</th><th>نفيات</th><th>التاريخ</th><th>إجراءات</th></tr></thead><tbody></tbody></table>
+        </div>
+    </div>
+
+    <div class="section hidden" id="usersTab">
+        <h3><i class="fas fa-users"></i> قائمة المستخدمين</h3>
+        <div style="overflow-x: auto;">
+            <table id="usersTable"><thead><tr><th>الإسم</th><th>الهاتف</th><th>المركبة</th><th>الحالة</th><th>بلاغات كاذبة</th><th>إجراءات</th></tr></thead><tbody></tbody></table>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast" style="display: none;"></div>
+
+<script>
+const API_URL = window.location.origin;
+let adminToken = localStorage.getItem('adminToken');
+
+function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg; toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 3000);
+}
+
+async function adminLogin() {
+    const username = document.getElementById('adminUser').value;
+    const password = document.getElementById('adminPass').value;
+    try {
+        const res = await fetch(`${API_URL}/api/admin/login`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const result = await res.json();
+        if (res.ok) {
+            adminToken = result.token; localStorage.setItem('adminToken', adminToken);
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            loadStats(); loadAlerts();
+        } else showToast(result.error || 'خطأ في الدخول');
+    } catch (err) { showToast('خطأ في الاتصال'); }
+}
+
+async function loadStats() {
+    try {
+        const res = await fetch(`${API_URL}/api/admin/stats`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+        if (res.ok) {
+            const stats = await res.json();
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card"><h3>إجمالي المستخدمين</h3><div class="value blue">${stats.totalUsers}</div></div>
+                <div class="stat-card"><h3>متصلين الآن</h3><div class="value green">${stats.onlineUsers}</div></div>
+                <div class="stat-card"><h3>بلاغات نشطة</h3><div class="value red">${stats.activeAlerts}</div></div>
+                <div class="stat-card"><h3>بلاغات كاذبة</h3><div class="value">${stats.falseAlerts}</div></div>
+                <div class="stat-card"><h3>محلولة</h3><div class="value green">${stats.resolvedAlerts}</div></div>
+                <div class="stat-card"><h3>محظورين</h3><div class="value red">${stats.blockedUsers}</div></div>
+                <div class="stat-card"><h3>المجموعات</h3><div class="value blue">${stats.totalGroups}</div></div>
+            `;
+        }
+    } catch (err) { console.error(err); }
+}
+
+async function loadAlerts() {
+    try {
+        const res = await fetch(`${API_URL}/api/admin/alerts`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+        if (res.ok) {
+            const alerts = await res.json();
+            const tbody = document.querySelector('#alertsTable tbody');
+            tbody.innerHTML = alerts.map(a => {
+                const statusClass = `badge-${a.status === 'active' ? 'active' : a.status === 'verified' ? 'verified' : a.status === 'false_alarm' ? 'false' : 'resolved'}`;
+                const statusText = a.status === 'active' ? 'نشط' : a.status === 'verified' ? 'مؤكد' : a.status === 'false_alarm' ? 'كاذب' : 'محلول';
+                return `
+                    <tr>
+                        <td>${a.userId?.name || '---'}</td>
+                        <td>${a.groupId?.city || '---'}</td>
+                        <td><span class="badge ${statusClass}">${statusText}</span></td>
+                        <td>${a.confirmCount}</td>
+                        <td>${a.denyCount}</td>
+                        <td>${new Date(a.createdAt).toLocaleString('ar-MA')}</td>
+                        <td><div class="actions">
+                            ${a.status !== 'false_alarm' ? `<button class="btn-false" onclick="markFalse('${a._id}')">كاذب</button>` : ''}
+                        </div></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    } catch (err) { console.error(err); }
+}
+
+async function loadUsers() {
+    try {
+        const res = await fetch(`${API_URL}/api/admin/users`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+        if (res.ok) {
+            const users = await res.json();
+            const tbody = document.querySelector('#usersTable tbody');
+            tbody.innerHTML = users.map(u => `
+                <tr>
+                    <td>${u.name}</td><td>${u.phone}</td><td>${u.vehicleType}</td>
+                    <td><span class="badge ${u.isBlocked ? 'badge-false' : u.status === 'online' ? 'badge-verified' : 'badge-active'}">${u.isBlocked ? 'محظور' : u.status}</span></td>
+                    <td>${u.falseAlertCount}</td>
+                    <td><div class="actions">
+                        <button class="${u.isBlocked ? 'btn-unblock' : 'btn-block'}" onclick="toggleBlock('${u._id}', ${!u.isBlocked})">${u.isBlocked ? 'إلغاء الحظر' : 'حظر'}</button>
+                    </div></td>
+                </tr>
+            `).join('');
+        }
+    } catch (err) { console.error(err); }
+}
+
+async function markFalse(alertId) {
+    try {
+        const res = await fetch(`${API_URL}/api/admin/alerts/${alertId}/false`, {
+            method: 'POST', headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        if (res.ok) { showToast('تم تحديد البلاغ ككاذب'); loadAlerts(); loadStats(); }
+    } catch (err) { showToast('خطأ'); }
+}
+
+async function toggleBlock(userId, block) {
+    try {
+        const res = await fetch(`${API_URL}/api/admin/users/${userId}/block`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+            body: JSON.stringify({ block })
+        });
+        if (res.ok) { showToast(block ? 'تم حظر المستخدم' : 'تم إلغاء الحظر'); loadUsers(); loadStats(); }
+    } catch (err) { showToast('خطأ'); }
+}
+
+function showTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('alertsTab').classList.add('hidden');
+    document.getElementById('usersTab').classList.add('hidden');
+    if (tab === 'alerts') { document.getElementById('alertsTab').classList.remove('hidden'); loadAlerts(); }
+    else { document.getElementById('usersTab').classList.remove('hidden'); loadUsers(); }
+}
+
+if (adminToken) {
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadStats(); loadAlerts();
+}
+</script>
+</body>
+</html>

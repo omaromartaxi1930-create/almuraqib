@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>المراقب - شبكة السلامة على الطريق</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="fas fa-info-circle"></i><span id="toastMsg">رسالة</span></div>
+
+<!-- Live Listeners Badge -->
+<div class="live-listeners" id="liveListeners"><span class="dot"></span><span id="listenersCount">0</span> سائق كيسمع</div>
+
+<!-- ===== SCREEN 1: AUTH ===== -->
+<div class="screen active auth-screen" id="authScreen">
+    <div class="auth-logo">
+        <i class="fas fa-eye"></i>
+        <h2>المراقب</h2>
+        <p>شبكة السلامة على الطريق</p>
+        <p style="font-size: 12px; margin-top: 8px;">🚕 🚛 🚌 🏍️ 🚗 - جميع المركبات</p>
+    </div>
+
+    <!-- Ad Slot: Auth Screen -->
+    <div class="ad-banner" style="max-width: 400px; width: 100%; margin-bottom: 15px;">
+        <span class="ad-label">إشهار</span>
+        <div class="ad-content">📢 فضاء إشهاري - 320×60</div>
+    </div>
+
+    <div class="tabs" style="margin-bottom: 20px;">
+        <button class="tab active" onclick="switchAuthTab('login')">دخول</button>
+        <button class="tab" onclick="switchAuthTab('register')">تسجيل</button>
+    </div>
+
+    <div id="loginForm" style="width: 100%; max-width: 400px;">
+        <div class="form-group">
+            <label>رقم الهاتف</label>
+            <input type="tel" id="loginPhone" placeholder="06XXXXXXXX">
+        </div>
+        <div class="form-group">
+            <label>كلمة السر</label>
+            <input type="password" id="loginPass" placeholder="********">
+        </div>
+        <button class="btn btn-primary" onclick="login()"><i class="fas fa-sign-in-alt"></i> دخول</button>
+    </div>
+
+    <div id="registerForm" style="display:none; width: 100%; max-width: 400px;">
+        <div class="form-group"><label>الإسم الكامل</label><input type="text" id="regName" placeholder="الإسم والنسب"></div>
+        <div class="form-group"><label>رقم الهاتف</label><input type="tel" id="regPhone" placeholder="06XXXXXXXX"></div>
+        <div class="form-group">
+            <label>نوع المركبة</label>
+            <select id="regVehicle">
+                <option value="">اختر نوع المركبة</option>
+                <option value="taxi_petit">🚕 طاكسي صغير</option>
+                <option value="taxi_grand">🚖 طاكسي كبير</option>
+                <option value="camion">🚛 شاحنة</option>
+                <option value="bus">🚌 حافلة</option>
+                <option value="moto">🏍️ دراجة نارية</option>
+                <option value="voiture">🚗 سيارة خاصة</option>
+                <option value="autre">🚙 أخرى</option>
+            </select>
+        </div>
+        <div class="form-group"><label>رقم اللوحة (اختياري)</label><input type="text" id="regPlate" placeholder="مثال: 12345-أ-1"></div>
+        <div class="form-group"><label>كلمة السر</label><input type="password" id="regPass" placeholder="********"></div>
+        <button class="btn btn-primary" onclick="register()"><i class="fas fa-user-plus"></i> تسجيل</button>
+    </div>
+</div>
+
+<!-- ===== SCREEN 2: GROUPS LIST ===== -->
+<div class="screen" id="groupsScreen">
+    <div class="groups-header">
+        <h2><i class="fas fa-users"></i> مجموعاتي</h2>
+        <p>انضم لمجموعة مدينتك أو أنشئ مجموعة جديدة</p>
+    </div>
+
+    <!-- Ad Slot: Top Banner -->
+    <div class="ad-banner medium">
+        <span class="ad-label">إشهار</span>
+        <div class="ad-content">📢 فضاء إشهاري - 320×90</div>
+        <div class="ad-size">ضع إعلانك هنا</div>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="searchGroups" placeholder="🔍 ابحث عن مجموعة (الرباط، الدار البيضاء...)" oninput="searchGroups()">
+    </div>
+
+    <div class="groups-list" id="groupsList"></div>
+
+    <!-- Ad Slot: Native Ad -->
+    <div class="ad-native" style="margin-bottom: 80px;">
+        <div class="ad-img">🛒</div>
+        <div class="ad-body">
+            <h4>إعلان تجريبي</h4>
+            <p>هنا يمكن وضع إعلان native للمحلات والخدمات</p>
+        </div>
+        <span class="ad-tag">إشهار</span>
+    </div>
+
+    <button class="create-group-btn" onclick="showCreateGroupModal()"><i class="fas fa-plus"></i></button>
+</div>
+
+<!-- ===== SCREEN 3: GROUP CHAT ===== -->
+<div class="screen" id="chatScreen">
+    <div class="chat-header">
+        <button class="back-btn" onclick="backToGroups()"><i class="fas fa-arrow-right"></i></button>
+        <div class="g-avatar" id="chatAvatar">🚕</div>
+        <div class="g-title">
+            <h3 id="chatGroupName">---</h3>
+            <p id="chatGroupInfo">--- عضو</p>
+        </div>
+        <button class="g-menu" onclick="showGroupMenu()"><i class="fas fa-ellipsis-v"></i></button>
+    </div>
+
+    <div class="map-container"><div id="groupMap"></div></div>
+    <div class="members-bar" id="membersBar"></div>
+    <div class="messages-area" id="messagesArea"></div>
+
+    <!-- Ad Slot: Bottom Banner -->
+    <div class="ad-banner small inline">
+        <span class="ad-label">إشهار</span>
+        <div class="ad-content">📢 فضاء إشهاري - 320×50</div>
+    </div>
+
+    <!-- ===== DANGER BUTTON (Toggle) ===== -->
+    <div class="danger-section" id="dangerSection">
+        <div class="danger-timer" id="dangerTimer">00:00</div>
+        <div class="danger-waveform" id="dangerWaveform">
+            <div class="bar" style="height: 8px;"></div>
+            <div class="bar" style="height: 12px;"></div>
+            <div class="bar" style="height: 18px;"></div>
+            <div class="bar" style="height: 12px;"></div>
+            <div class="bar" style="height: 8px;"></div>
+        </div>
+        <button class="danger-btn-big" id="dangerBtn" onclick="toggleDangerRecording()"><i class="fas fa-exclamation-triangle"></i></button>
+        <div class="danger-label" id="dangerLabel">اضغط مرة للإنذار</div>
+        <div class="danger-status" id="dangerStatus"><span class="live-dot"></span> الصوت يخرج مباشرة لأعضاء المجموعة</div>
+    </div>
+
+    <!-- ===== PTT BUTTON ===== -->
+    <div class="ptt-section" id="pttSection">
+        <button class="ptt-btn" id="pttBtn" 
+            onmousedown="startPTT()" onmouseup="stopPTT()" onmouseleave="stopPTT()"
+            ontouchstart="startPTT()" ontouchend="stopPTT()">
+            <i class="fas fa-microphone"></i>
+        </button>
+        <div class="ptt-info">
+            <div class="ptt-label" id="pttLabel">اضغط واستمر للمحادثة</div>
+            <div class="ptt-sub">محادثة صوتية مع المجموعة</div>
+        </div>
+        <div class="ptt-timer" id="pttTimer">00:00</div>
+    </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+<div class="modal-overlay" id="createGroupModal">
+    <div class="modal-box">
+        <h3><i class="fas fa-users" style="color: var(--primary);"></i> مجموعة جديدة</h3>
+        <p>أنشئ مجموعة لمدينتك أو منطقتك</p>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label>اسم المجموعة</label>
+            <input type="text" id="newGroupName" placeholder="مثال: سائقي الرباط">
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label>المدينة</label>
+            <input type="text" id="newGroupCity" placeholder="مثال: الرباط">
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label>أنواع المركبات المسموحة</label>
+            <select id="newGroupTypes" multiple style="height: 80px;">
+                <option value="taxi_petit">🚕 طاكسي صغير</option>
+                <option value="taxi_grand">🚖 طاكسي كبير</option>
+                <option value="camion">🚛 شاحنة</option>
+                <option value="bus">🚌 حافلة</option>
+                <option value="moto">🏍️ دراجة نارية</option>
+                <option value="voiture">🚗 سيارة خاصة</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" onclick="createGroup()">إنشاء المجموعة</button>
+        <button class="btn btn-secondary" onclick="closeModal('createGroupModal')">إلغاء</button>
+    </div>
+</div>
+
+<div class="incoming-alert-overlay" id="incomingAlertModal">
+    <div class="incoming-alert-box">
+        <div class="alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <h3>⚠️ إنذار من المجموعة!</h3>
+        <div class="driver-info">
+            <div><span>السائق:</span><span id="alertSenderName">---</span></div>
+            <div><span>المركبة:</span><span id="alertSenderVehicle">---</span></div>
+            <div><span>المسافة:</span><span id="alertDistance">---</span></div>
+        </div>
+        <div class="countdown" id="alertCountdown">3</div>
+        <p style="font-size: 12px; color: var(--text-light);">جاري تشغيل الصوت المسجل...</p>
+        <audio id="alertAudioPlayer" controls style="width: 100%; margin-top: 10px;"></audio>
+        <button class="btn btn-success" style="margin-top: 15px;" onclick="dismissAlert()"><i class="fas fa-check"></i> فهمت</button>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>
