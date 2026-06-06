@@ -266,5 +266,14 @@ body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidde
 .live-listeners .dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; animation: blink 1s infinite; }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
+.auth-screen {
+    overflow-y: auto !important;
+    min-height: 100vh;
+    padding-bottom: 50px;
+}
+
+#loginForm, #registerForm {
+    margin-bottom: 40px;
+}
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #bdbdbd; border-radius: 3px; }
