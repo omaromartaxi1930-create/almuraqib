@@ -2,16 +2,27 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>المراقب - شبكة السلامة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المراقب</title>
     <link rel="stylesheet" href="/style.css">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-    <div class="screen active auth-screen" id="authScreen">
-        <div id="loginForm">...</div>
-        <div id="registerForm" style="display:none;">...</div>
+    <div class="auth-screen" id="authScreen">
+        <h2>المراقب</h2>
+        <div class="tabs">
+            <button class="tab active" onclick="switchAuthTab('login')">دخول</button>
+            <button class="tab" onclick="switchAuthTab('register')">تسجيل</button>
+        </div>
+        <div id="loginForm">
+            <input type="tel" id="loginPhone" placeholder="رقم الهاتف">
+            <input type="password" id="loginPass" placeholder="كلمة السر">
+            <button class="btn" onclick="login()">دخول</button>
+        </div>
+        <div id="registerForm" style="display:none;">
+            <input type="text" id="regName" placeholder="الإسم الكامل">
+            <input type="tel" id="regPhone" placeholder="رقم الهاتف">
+            <button class="btn" onclick="register()">تسجيل</button>
+        </div>
     </div>
     <script src="/app.js"></script>
 </body>
