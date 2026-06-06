@@ -1,1 +1,8 @@
 
+{
+  "name": "المراقب",
+  "short_name": "AlMuraqib",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff"
+}
